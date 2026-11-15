@@ -19,6 +19,30 @@ work together in one project.
 | 6 | Strategy         | Behavioral | `strategy` – discount rules for different customers |
 | 7 | Visitor          | Behavioral | `visitor` – calories report and receipt export      |
 
+## How the patterns work together
+
+```
+DishFactory / MealAbstractFactory      -> create the single dishes
+        |
+        v
+MealDirector + MealBuilder             -> put the dishes into a combo meal
+        |
+        v
+FoodRefined + DiningMode (Bridge)      -> staple / drink  x  dine-in / delivery
+        |
+        v
+Order (+ OrderVisitor)                 -> receipt and calories report
+        |
+        v
+OrderFacade.placeOrder(order, strategy, mode)
+        stock -> payment -> kitchen -> notify   (rollback when payment fails)
+                                   ^
+                          PricingStrategy (discount)
+```
+
+`Main.java` demonstrates every pattern in its own section, then uses all of them
+to place order #1001 (success) and order #1002 (payment fails, stock is rolled back).
+
 ## Project structure
 
 ```
