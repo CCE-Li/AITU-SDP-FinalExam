@@ -1,0 +1,329 @@
+<h2 id="s2.6">2.6 Facade &mdash; the checkout process with rollback</h2>
+<p>
+    <b>Intent.</b> Provide a unified interface to a set of interfaces in a subsystem. The facade defines a higher level
+    interface that makes the subsystem easier to use.
+</p>
+<p>
+    Placing an order requires four subsystems: the stock must be checked and reserved, the money must be taken, the kitchen
+    must start cooking, and the customer must be notified. The cashier should not call all of them in the right order and
+    should certainly not implement the recovery logic. <code>OrderFacade.placeOrder()</code> hides the sequence and also
+    owns the transaction boundary: when the payment is refused, the reserved dishes are released again.
+</p>
+
+<figure class="wide">
+    <img src="../uml/facade-class.png" alt="Facade class diagram">
+    <figcaption><b>Figure 6.</b> Facade: <code>OrderFacade</code> composes four subsystems and depends on the
+        <code>PricingStrategy</code>, <code>DiningMode</code> and <code>Order</code> abstractions.</figcaption>
+</figure>
+
+<pre class="code">public boolean placeOrder(Order order, PricingStrategy strategy, DiningMode mode) {
+
+    // 1. check and reserve the stock
+    if (!inventory.reserve(order.getDishes())) {
+        notifier.notifyCustomer("Sorry, some dishes are sold out, order #"
+                + order.getId() + " is cancelled.");
+        return false;
+    }
+
+    // 2. pay (the discount is calculated by the strategy, delivery fee is added once)
+    double subtotal = order.getTotalPrice();
+    double finalPrice = strategy.calculate(subtotal) + mode.extraFee();
+
+    if (!payment.pay(order.getId(), finalPrice)) {
+        inventory.release(order.getDishes());   // rollback
+        notifier.notifyCustomer("Payment failed, the stock of order #"
+                + order.getId() + " has been released.");
+        return false;
+    }
+
+    // 3. the kitchen starts cooking
+    kitchen.cook(order);
+
+    // 4. tell the customer
+    notifier.notifyCustomer("Order #" + order.getId() + " confirmed, total $"
+            + String.format("%.2f", finalPrice) + " (" + mode.getName() + ").");
+    return true;
+}</pre>
+
+<p>
+    Two details of this implementation deserve attention. First, <code>Inventory.reserve()</code> checks <i>all</i> dishes
+    before it takes anything out of the stock, so a partially available order never leaves the stock in a half-modified
+    state. Second, a combo meal is stored in the stock through its parts: <code>Inventory.expand()</code> replaces a
+    <code>ComboMeal</code> by the dishes it contains, because the kitchen consumes the parts and not the combo.
+</p>
+
+<figure class="wide">
+    <img src="../uml/sequence-diagram.png" alt="Sequence diagram of placeOrder">
+    <figcaption><b>Figure 7.</b> Sequence diagram of <code>placeOrder()</code>. The two nested <code>alt</code> fragments are
+        the sold-out case and the two payment outcomes; the second one contains the rollback step.</figcaption>
+</figure>
+
+<p>
+    <b>Why it is used here.</b> The client in <code>Main</code> needs one line to order a meal, and the recovery logic exists
+    in one place only. Without the facade the same eight lines of orchestration would be repeated at every call site, and a
+    rollback bug would have to be fixed in each of them.
+</p>
+<p>
+    <b>Trade-off.</b> A facade tends to grow into a god class, because every new workflow is easy to add to it. In this
+    project it stays small on purpose: it exposes only <code>placeOrder()</code> plus three setup helpers used by the demo.
+</p>
+
+<h2 id="s2.7">2.7 Strategy &mdash; discount rules</h2>
+<p>
+    <b>Intent.</b> Define a family of algorithms, encapsulate each one and make them interchangeable. The algorithm varies
+    independently from the clients that use it.
+</p>
+<p>
+    Three customer types are supported: a normal customer pays the full price, a VIP member receives 20% off, and during a
+    holiday a full-reduction rule applies (spend 30 and save 5, spend 50 and save 10). Each rule is a separate class that
+    implements <code>PricingStrategy</code>.
+</p>
+
+<figure class="small">
+    <img src="../uml/strategy-class.png" alt="Strategy class diagram">
+    <figcaption><b>Figure 8.</b> Strategy: the facade holds the abstraction, the concrete rules are interchangeable at runtime.</figcaption>
+</figure>
+
+<pre class="code">public interface PricingStrategy {
+
+    /** Turn the raw order total into the price the customer has to pay. */
+    double calculate(double total);
+
+    String getName();
+}
+
+public class VipDiscountStrategy implements PricingStrategy {
+
+    private static final double DISCOUNT = 0.8;
+
+    @Override
+    public double calculate(double total) { return total * DISCOUNT; }
+
+    @Override
+    public String getName() { return "VIP 20% off"; }
+}</pre>
+
+<p>
+    <b>Why it is used here.</b> The facade receives the strategy as a parameter, so the pricing rule can be chosen at the
+    counter without changing a single line of the checkout code. The alternative &mdash; a chain of
+    <code>if (customerType == ...)</code> inside the facade &mdash; would have to be modified for every new promotion, which
+    violates the open/closed principle.
+</p>
+<p>
+    <b>Trade-off.</b> The client must know which strategy to pass. In a larger system this decision would be moved into a
+    small factory or a configuration table; here it is passed explicitly in <code>Main</code>, which keeps the example readable.
+</p>
+
+<h2 id="s2.8">2.8 Visitor &mdash; calories and receipt reports</h2>
+<p>
+    <b>Intent.</b> Represent an operation to be performed on the elements of an object structure. The pattern lets a new
+    operation be defined without changing the classes of the elements on which it operates.
+</p>
+<p>
+    Two reports are needed: the total amount of calories of an order, and a printable receipt. Both are operations on the
+    same object structure (<code>Order</code> and <code>Dish</code>), and neither of them is a responsibility of the
+    entities themselves. A dish should not know how a receipt is formatted.
+</p>
+
+<figure class="small">
+    <img src="../uml/visitor-class.png" alt="Visitor class diagram">
+    <figcaption><b>Figure 9.</b> Visitor: the entities expose <code>accept()</code>, the two visitors implement the operations.</figcaption>
+</figure>
+
+<pre class="code">public interface OrderVisitor {
+
+    void visit(Dish dish);
+
+    void visit(Order order);
+}
+
+public class CalorieCalculatorVisitor implements OrderVisitor {
+
+    private int totalCalories;
+
+    @Override
+    public void visit(Dish dish) {
+        totalCalories += dish.getCalories();
+    }
+
+    @Override
+    public void visit(Order order) {
+        totalCalories = 0;
+        for (Dish dish : order.getDishes()) {
+            dish.accept(this);
+        }
+    }
+
+    public int getTotalCalories() {
+        return totalCalories;
+    }
+}</pre>
+
+<p>
+    <b>Double dispatch.</b> The call <code>order.accept(visitor)</code> selects the visitor, and the call
+    <code>visitor.visit(dish)</code> selects the operation for the concrete element type. This is the mechanism that allows
+    <code>ComboMeal</code> to be handled like any other <code>Dish</code>: its calories are already the sum of its parts, so
+    the visitor needs no special case for it.
+</p>
+<p>
+    <b>Composition of visitors.</b> <code>ReportExporterVisitor</code> creates a <code>CalorieCalculatorVisitor</code>
+    internally and runs it on the same order, so the receipt contains the calorie total without duplicating the counting
+    logic. Visitors can therefore be combined, which is a useful point to mention at the defence.
+</p>
+<p>
+    <b>Trade-off.</b> Adding a new element class (for example <code>SideDish</code>) requires a new <code>visit()</code>
+    method in the interface and in every visitor. Visitor is the right choice when operations change often and the element
+    structure is stable, which is exactly the case for an order.
+</p>
+
+<h2 id="s2.9">2.9 How the patterns collaborate</h2>
+<p>
+    The patterns are not isolated examples: they exchange objects through the shared <code>model</code> package. Table 2
+    summarises the concrete connections, and the numbered list afterwards follows one complete order through the system.
+</p>
+
+<table class="data">
+    <tr><th style="width:20%">Pattern</th><th style="width:26%">Collaborates with</th><th>How</th></tr>
+    <tr><td>Factory Method</td><td>Builder</td><td><code>MealDirector</code> asks a <code>DishFactory</code> for the parts of a combo</td></tr>
+    <tr><td>Abstract Factory</td><td>Builder</td><td>The cuisine family is passed to <code>buildCustomCombo()</code> and becomes one meal</td></tr>
+    <tr><td>Builder</td><td>model, Visitor</td><td>Produces a <code>ComboMeal</code>, which is a <code>Dish</code> and can be visited</td></tr>
+    <tr><td>Bridge</td><td>model, Facade</td><td>Wraps a dish with a dining mode; <code>extraFee()</code> enters the final price</td></tr>
+    <tr><td>Strategy</td><td>Facade</td><td>The discount is applied by the facade before the payment step</td></tr>
+    <tr><td>Visitor</td><td>model</td><td>Adds calories and receipt operations to <code>Order</code> without changing it</td></tr>
+    <tr><td>Facade</td><td>all of the above</td><td>Orchestrates stock, payment, kitchen and notification in one call</td></tr>
+</table>
+
+<p><b>Walkthrough of one order</b> (the exact sequence that <code>Main</code> executes):</p>
+<ol>
+    <li><b>Create</b> &mdash; a burger, a pizza and a coke are created through three <code>DishFactory</code> implementations.</li>
+    <li><b>Assemble</b> &mdash; <code>MealDirector</code> builds the classic combo; the abstract factory supplies a Chinese set.</li>
+    <li><b>Serve</b> &mdash; <code>StapleFood</code> and <code>DrinkItem</code> are combined with <code>DineInMode</code> or
+        <code>DeliveryMode</code>, and the bridge returns the serving text and the surcharge.</li>
+    <li><b>Order</b> &mdash; the combo, the pizza and the coke are added to <code>Order</code> #1001.</li>
+    <li><b>Report</b> &mdash; <code>ReportExporterVisitor</code> prints the receipt, <code>CalorieCalculatorVisitor</code> counts 1990 kcal.</li>
+    <li><b>Price</b> &mdash; three strategies are applied to the same subtotal to compare the result.</li>
+    <li><b>Checkout</b> &mdash; <code>OrderFacade.placeOrder()</code> reserves the stock, takes 18.28 USD, starts the kitchen and notifies the customer.</li>
+    <li><b>Failure</b> &mdash; a second order is refused by the payment service and the facade rolls the stock back.</li>
+</ol>
+
+<div class="callout">
+    <span class="label">Requirement check</span>
+    The defence requirements ask for at least six patterns implemented by the team and at least two per student.
+    This implementation contains <b>seven</b> patterns, all written by the author, and all seven are exercised in a single
+    run of <code>Main</code>. The report contains the introduction, body, conclusion, further work, Java code, screenshots
+    and UML diagrams as required.
+</div>
+
+<h2 id="s2.10">2.10 Screenshots of the running application</h2>
+<p>
+    The program is a console application, therefore the screenshots show the console window produced by
+    <code>java -jar target/restaurant-system-1.0.0.jar</code>. Every section of the output is labelled with the pattern it
+    demonstrates, which makes the screenshots usable as evidence during the defence.
+</p>
+
+<figure class="screenshot">
+    <img src="../screenshots/shot1-creation-patterns.png" alt="Screenshot: creation patterns">
+    <figcaption><b>Figure 10.</b> Creation patterns. The factory produces single dishes, the abstract factory produces the two
+        cuisine families, and the builder returns three combo meals with a 10% discount (6.50 + 2.00 + 2.00 = 10.50 becomes 9.45).</figcaption>
+</figure>
+
+<figure class="screenshot">
+    <img src="../screenshots/shot2-serving-and-pricing.png" alt="Screenshot: bridge, visitor, strategy">
+    <figcaption><b>Figure 11.</b> Bridge, Visitor and Strategy. The same burger is served dine-in for 6.50 and by delivery for
+        8.50; the receipt reports 1990 kcal for order #1001; the three strategies return 20.35, 16.28 and 20.35.</figcaption>
+</figure>
+
+<figure class="screenshot">
+    <img src="../screenshots/shot3-facade-order.png" alt="Screenshot: successful order">
+    <figcaption><b>Figure 12.</b> Successful checkout of order #1001 through the facade: the stock is reduced, the payment of
+        18.28 USD is accepted, the kitchen starts and the customer is notified.</figcaption>
+</figure>
+
+<figure class="screenshot">
+    <img src="../screenshots/shot4-facade-rollback.png" alt="Screenshot: payment refused and rollback">
+    <figcaption><b>Figure 13.</b> Failure path. The payment limit is lowered to 5.00 USD, the payment of order #1002 is refused
+        and the reserved dishes (Veggie Burger, Salad) are released, so the stock is identical to the state before the attempt.</figcaption>
+</figure>
+
+<h2 id="s2.11">2.11 Verification of the results</h2>
+<p>
+    The numbers printed by the program were calculated by hand from the menu data in order to confirm that the patterns
+    really cooperate and do not merely print plausible text.
+</p>
+
+<table class="data">
+    <tr><th style="width:38%">Value</th><th style="width:32%">Expected</th><th>Printed by the program</th></tr>
+    <tr><td>Classic combo (6.50 + 2.00 + 2.00) &times; 0.9</td><td>9.45</td><td>9.45 &nbsp;&#10003;</td></tr>
+    <tr><td>Subtotal of order #1001 (9.45 + 8.90 + 2.00)</td><td>20.35</td><td>20.35 &nbsp;&#10003;</td></tr>
+    <tr><td>VIP price 20.35 &times; 0.8</td><td>16.28</td><td>16.28 &nbsp;&#10003;</td></tr>
+    <tr><td>Final price 16.28 + delivery 2.00</td><td>18.28</td><td>18.28 &nbsp;&#10003;</td></tr>
+    <tr><td>Calories 1020 (combo) + 820 (pizza) + 150 (coke)</td><td>1990 kcal</td><td>1990 kcal &nbsp;&#10003;</td></tr>
+    <tr><td>Stock of order #1002 after a refused payment</td><td>unchanged</td><td>Veggie Burger 3, Salad 3 &nbsp;&#10003;</td></tr>
+</table>
+
+<p>
+    The build was also verified on a clean checkout: <code>mvn clean package</code> finishes without warnings and produces
+    <code>target/restaurant-system-1.0.0.jar</code>, and the jar runs with <code>java -jar</code> because the manifest
+    declares <code>Main</code> as the entry point. The same sources compile with plain <code>javac</code>, which means the
+    project does not depend on the build tool to be demonstrated.
+</p>
+
+<!-- ================= 3. CONCLUSION ================= -->
+<h1 class="section" id="s3">3. Conclusion</h1>
+<p>
+    The project delivers a complete restaurant ordering system in about 1,100 lines of Java and implements seven design
+    patterns from the course. The patterns are not separate demonstrations: they form one pipeline in which the creation
+    patterns feed the model, the Bridge and the Strategy add behaviour to an order, the Visitor produces reports and the
+    Facade performs the checkout.
+</p>
+<p>Three conclusions can be drawn from the work.</p>
+<ol>
+    <li><b>A pattern is a boundary, not a class.</b> The most difficult decisions were not the class diagrams but the
+        placement of responsibilities: deciding that <code>ComboMeal</code> must extend <code>Dish</code> made the Builder
+        and the Visitor work together without any special case, and deciding that the rollback belongs to the facade kept
+        the subsystems independent of each other.</li>
+    <li><b>Patterns interact through shared abstractions.</b> No pattern imports the implementation of another pattern; they
+        meet on <code>Dish</code>, <code>Order</code>, <code>PricingStrategy</code> and <code>DiningMode</code>. This is why
+        the composition of the whole system could be changed without rewriting it.</li>
+    <li><b>Every pattern has a price.</b> Abstract Factory makes the product family rigid, Visitor makes the element
+        structure rigid, and the Facade tends to absorb responsibilities. Being able to name these costs is as important as
+        being able to implement the patterns.</li>
+</ol>
+<p>
+    The final result satisfies the defence requirements: seven patterns (at least six required), each implemented and
+    demonstrably operational in one run, together with the UML diagrams, the screenshots and the source code contained in
+    this report.
+</p>
+
+<!-- ================= 4. FURTHER WORK ================= -->
+<h1 class="section" id="s4">4. Further work</h1>
+<p>The current version deliberately stops at the console. The following improvements are ordered by the value they would add.</p>
+
+<h3>4.1 Two more patterns from the course</h3>
+<p>
+    The Observer pattern would fit the order status naturally: the kitchen becomes the subject and the customer display and
+    the delivery tracker become observers, so the status change no longer needs to be pushed manually from the facade.
+    The Decorator pattern would model extra toppings: a <code>CheeseDecorator</code> or a
+    <code>BaconDecorator</code> wraps a <code>Dish</code> and adds both price and calories, which would extend the current
+    <code>ComboMeal</code> composition with a recursive structure.
+</p>
+
+<h3>4.2 Persistence and a real interface</h3>
+<p>
+    The <code>Inventory</code> and the orders are kept in memory. A JDBC or SQLite repository behind the same interface would
+    make the state durable without touching the facade. A REST controller (Spring Boot) or a JavaFX table would replace the
+    console and would show that the domain layer is independent of the user interface.
+</p>
+
+<h3>4.3 Automated tests</h3>
+<p>
+    The numerical results of Section 2.11 are currently verified by reading the console. JUnit 5 tests for the strategies,
+    the builder and the rollback path of the facade would turn these observations into regression tests, and a GitHub Actions
+    workflow would run them on every push.
+</p>
+
+<h3>4.4 Refactoring of the facade</h3>
+<p>
+    If more steps are added to the checkout (loyalty points, invoices, delivery scheduling), the facade should be split into
+    a workflow object and a set of independent services, so that it does not become the god class mentioned in Section 2.6.
+</p>

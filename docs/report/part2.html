@@ -1,0 +1,250 @@
+<!-- ================= 2. BODY ================= -->
+<h1 class="section" id="s2">2. Body</h1>
+
+<h2 id="s2.1">2.1 System architecture and package layout</h2>
+<p>
+    The application is organised as a small layered pipeline. Dishes are created first, a combo meal may be assembled
+    from them, the meal is put into an order, the order is served through a dining mode, it can be reported on, and
+    finally it is checked out through a single facade method. Figure&nbsp;1 shows this flow together with the pattern
+    responsible for each step.
+</p>
+
+<figure class="small">
+    <img src="../uml/pattern-collaboration.png" alt="Pattern collaboration">
+    <figcaption><b>Figure 1.</b> Collaboration of the seven patterns. Creation patterns feed the model, the Bridge and the
+        Strategy add behaviour to the order, the Facade coordinates the checkout and the Visitor produces reports.</figcaption>
+</figure>
+
+<p>
+    The package structure follows the same idea: one package per pattern, plus a <code>model</code> package that holds
+    the entities shared by all patterns. The dependency direction is important and intentional &mdash; the
+    <code>model</code> package depends on nothing except the <code>visitor.OrderVisitor</code> interface, so the
+    entities can be reused by any of the behavioural patterns.
+</p>
+
+<table class="data">
+    <tr><th style="width:24%">Package</th><th style="width:22%">Pattern</th><th>Responsibility</th></tr>
+    <tr><td><code>model</code></td><td>&mdash;</td><td><code>Dish</code>, <code>ComboMeal</code>, <code>Order</code>: the data every other package works with</td></tr>
+    <tr><td><code>factory</code></td><td>Factory Method</td><td>Creates single dishes (burgers, pizzas, drinks) by name</td></tr>
+    <tr><td><code>builder</code></td><td>Builder</td><td>Assembles a <code>ComboMeal</code> step by step; the director owns the recipes</td></tr>
+    <tr><td><code>abstractfactory</code></td><td>Abstract Factory</td><td>Creates consistent Chinese or Western meal families</td></tr>
+    <tr><td><code>bridge</code></td><td>Bridge</td><td>Combines a food type (staple / drink) with a dining mode (dine-in / delivery)</td></tr>
+    <tr><td><code>facade</code></td><td>Facade</td><td>Runs stock, payment, kitchen and notification as one transaction</td></tr>
+    <tr><td><code>strategy</code></td><td>Strategy</td><td>Computes the final price for normal, VIP and holiday customers</td></tr>
+    <tr><td><code>visitor</code></td><td>Visitor</td><td>Adds operations to the order: calories and receipt export</td></tr>
+    <tr><td>&mdash;</td><td>Client</td><td><code>Main</code> demonstrates every pattern, then places two real orders</td></tr>
+</table>
+
+<h2 id="s2.2">2.2 Factory Method &mdash; creating dishes</h2>
+<p>
+    <b>Intent.</b> Define an interface for creating an object, but let the subclasses decide which class to instantiate.
+    The client works with the product through its interface and never calls a constructor of a concrete dish.
+</p>
+<p>
+    In the menu every category has its own factory. <code>DishFactory</code> declares two operations:
+    <code>create(name)</code> returns a <code>Dish</code>, and <code>getCategory()</code> returns the name of the
+    category for logging. <code>BurgerFactory</code>, <code>PizzaFactory</code> and <code>DrinkFactory</code> are the
+    concrete creators; <code>Dish</code> is the product.
+</p>
+
+<figure class="small">
+    <img src="../uml/factory-class.png" alt="Factory Method class diagram">
+    <figcaption><b>Figure 2.</b> Factory Method: the creator interface <code>DishFactory</code> and three concrete creators.
+        The client only depends on the interface and on <code>Dish</code>.</figcaption>
+</figure>
+
+<pre class="code">public class BurgerFactory implements DishFactory {
+
+    @Override
+    public Dish create(String name) {
+        switch (name) {
+            case "Beef Burger":    return new Dish("Beef Burger", 6.50, 550);
+            case "Chicken Burger": return new Dish("Chicken Burger", 5.50, 480);
+            case "Veggie Burger":  return new Dish("Veggie Burger", 4.80, 390);
+            default: throw new IllegalArgumentException("Unknown burger: " + name);
+        }
+    }
+
+    @Override
+    public String getCategory() {
+        return "Burger";
+    }
+}</pre>
+
+<p>
+    <b>Why it is used here.</b> Prices and calories belong to the menu, not to the client. If the kitchen changes the
+    price of a burger, only <code>BurgerFactory</code> changes. A new category (for example a dessert factory) is added
+    as a new class and the existing client code is not touched at all.
+</p>
+<p>
+    <b>Trade-off.</b> One class per product category is more code than a single <code>switch</code> over a dish name.
+    The pattern pays off when categories are added by different people or when each category needs its own data source;
+    for a five-item menu a plain factory class would be simpler, and this is worth saying honestly during the defence.
+</p>
+
+<h2 id="s2.3">2.3 Builder &mdash; assembling combo meals</h2>
+<p>
+    <b>Intent.</b> Separate the construction of a complex object from its representation, so that the same construction
+    process can create different representations.
+</p>
+<p>
+    A combo meal is not a new kind of food, it is a <i>composition</i> of dishes with its own price. The solution keeps
+    the product inside the model package: <code>ComboMeal</code> extends <code>Dish</code>, therefore a built meal can be
+    added to an order exactly like a single burger, and it inherits the <code>accept(visitor)</code> operation, which the
+    Visitor pattern later uses.
+</p>
+
+<figure class="small">
+    <img src="../uml/builder-class.png" alt="Builder class diagram">
+    <figcaption><b>Figure 3.</b> Builder: <code>MealDirector</code> knows the recipes and the order of the steps,
+        <code>MealBuilder</code> collects the parts, <code>CustomMealBuilder</code> decides how the final meal is built.</figcaption>
+</figure>
+
+<pre class="code">public class MealDirector {
+
+    private final MealBuilder builder;
+
+    public MealDirector(MealBuilder builder) {
+        this.builder = builder;
+    }
+
+    /** Classic recipe: beef burger + fries + coke. */
+    public ComboMeal buildClassicCombo() {
+        DishFactory burgers = new BurgerFactory();
+        DishFactory drinks = new DrinkFactory();
+
+        builder.reset();
+        builder.setMealName("Classic Combo");
+        builder.addMain(burgers.create("Beef Burger"));
+        builder.addSide(new Dish("Fries", 2.00, 320));
+        builder.addDrink(drinks.create("Coke"));
+        return builder.getMeal();
+    }
+}</pre>
+
+<pre class="code">public class CustomMealBuilder extends MealBuilder {
+
+    @Override
+    public ComboMeal getMeal() {
+        double sum = 0;
+        for (Dish dish : parts) {
+            sum += dish.getPrice();
+        }
+        double comboPrice = sum * 0.9;          // a combo is 10% cheaper
+        return new ComboMeal(mealName, new ArrayList&lt;&gt;(parts), comboPrice);
+    }
+}</pre>
+
+<p>
+    <b>Why it is used here.</b> The three steps <i>main / side / drink</i> are fixed, but their content is not. The
+    director owns the recipes (classic, light, custom), the builder owns the pricing rule, and the client never has to
+    remember the correct order of calls. Note the collaboration with the previous pattern: the director asks a
+    <code>DishFactory</code> for the parts instead of creating them itself.
+</p>
+<p>
+    <b>Trade-off.</b> Three types (builder, concrete builder, director) for one product is heavy when the product has
+    only two fields. The pattern is justified here because a combo has a variable number of optional parts and because
+    the pricing rule differs between builders.
+</p>
+
+<h2 id="s2.4">2.4 Abstract Factory &mdash; cuisine families</h2>
+<p>
+    <b>Intent.</b> Provide an interface for creating families of related objects without specifying their concrete classes.
+</p>
+<p>
+    The restaurant offers two set meals. A Chinese set must contain a Chinese main dish and a Chinese drink; a Western set
+    must not mix a burger with soy milk. <code>MealAbstractFactory</code> declares one creation method per product of the
+    family, and each concrete factory returns a consistent family.
+</p>
+
+<figure class="small">
+    <img src="../uml/abstractfactory-class.png" alt="Abstract Factory class diagram">
+    <figcaption><b>Figure 4.</b> Abstract Factory: two concrete factories, each producing a consistent family of two dishes.</figcaption>
+</figure>
+
+<pre class="code">public interface MealAbstractFactory {
+
+    Dish createMainDish();
+
+    Dish createDrink();
+
+    String getCuisine();
+}</pre>
+
+<pre class="code">public class ChineseMealFactory implements MealAbstractFactory {
+
+    @Override
+    public Dish createMainDish() { return new Dish("Beef Noodles", 4.50, 600); }
+
+    @Override
+    public Dish createDrink() { return new Dish("Soy Milk", 2.50, 120); }
+
+    @Override
+    public String getCuisine() { return "Chinese"; }
+}</pre>
+
+<p>
+    <b>Difference from Factory Method.</b> This is a question that is asked in almost every defence, so it is stated
+    explicitly. Factory Method creates <i>one</i> product and is usually implemented by inheritance: the subclass overrides
+    the factory method. Abstract Factory creates a <i>family</i> of products and is implemented by composition: the client
+    holds a reference to the factory interface and calls several creation methods on it. In this project the two patterns
+    are used together &mdash; the abstract factory produces the family, and the builder turns it into one meal, which is
+    shown in Section 2.9.
+</p>
+<p>
+    <b>Trade-off.</b> Adding a new product to the family (for example <code>createDessert()</code>) forces a change in the
+    interface and therefore in every concrete factory. Adding a new <i>family</i> (Japanese cuisine) is cheap: one new class.
+</p>
+
+<h2 id="s2.5">2.5 Bridge &mdash; food type and dining mode</h2>
+<p>
+    <b>Intent.</b> Decouple an abstraction from its implementation so that the two can vary independently.
+</p>
+<p>
+    Two dimensions change independently in a restaurant: <i>what</i> is served (a staple food or a drink, each with its own
+    serving note) and <i>how</i> it is served (dine-in or delivery, the latter with an extra fee). Without the pattern,
+    four classes would be needed for the four combinations, and adding a third dining mode would produce nine.
+</p>
+
+<figure class="small">
+    <img src="../uml/bridge-class.png" alt="Bridge class diagram">
+    <figcaption><b>Figure 5.</b> Bridge: <code>FoodRefined</code> is the abstraction, <code>DiningMode</code> is the
+        implementor. The two hierarchies can grow independently.</figcaption>
+</figure>
+
+<pre class="code">public abstract class FoodRefined {
+
+    protected final Dish dish;
+    protected final DiningMode mode;
+
+    protected FoodRefined(Dish dish, DiningMode mode) {
+        this.dish = dish;
+        this.mode = mode;
+    }
+
+    public abstract String getFoodType();
+
+    protected abstract String getServiceNote();
+
+    /** The serving work is delegated to the dining mode. */
+    public String serve() {
+        return "[" + mode.getName() + "] " + mode.serve(dish.getName())
+                + " (" + getServiceNote() + ")";
+    }
+
+    /** Food price + the fee of the dining mode. */
+    public double getPrice() {
+        return dish.getPrice() + mode.extraFee();
+    }
+}</pre>
+
+<p>
+    <b>Why it is used here.</b> The number of classes grows as a sum instead of a product: two food types plus two dining
+    modes give four classes instead of four combinations, and a third mode costs one new class. The bridge is also
+    connected to the rest of the system: <code>extraFee()</code> is used by the facade when the final price is computed,
+    so the delivery surcharge is defined in exactly one place.
+</p>
+<p>
+    <b>Trade-off.</b> The client must know both hierarchies and decide which pair to instantiate. For a system with only
+    one dimension of variation, a simple subclass is enough and the bridge would be over-engineering.
+</p>

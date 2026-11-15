@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Final Project Report - Restaurant Ordering System - LiYixin</title>
+    <link rel="stylesheet" href="report.css">
+</head>
+<body>
+
+<!-- ================= COVER ================= -->
+<section class="cover">
+    <div class="uni">Astana IT University</div>
+    <div class="faculty">Software Design Patterns &middot; Final Project Defense</div>
+    <div class="rule"></div>
+    <div class="rule thin"></div>
+
+    <div class="middle">
+        <div class="kicker">Final project report</div>
+        <h1>Restaurant Ordering System</h1>
+        <div class="subtitle">A cohesive Java application built with seven design patterns</div>
+        <div class="patterns">
+            Factory Method &nbsp;&middot;&nbsp; Builder &nbsp;&middot;&nbsp; Abstract Factory &nbsp;&middot;&nbsp;
+            Bridge &nbsp;&middot;&nbsp; Facade &nbsp;&middot;&nbsp; Strategy &nbsp;&middot;&nbsp; Visitor
+        </div>
+    </div>
+
+    <div class="bottom">
+        <table class="meta">
+            <tr><td>Student</td><td><b>LiYixin</b></td></tr>
+            <tr><td>Group</td><td>SE-2526</td></tr>
+            <tr><td>Course</td><td>Software Design Patterns (SDP)</td></tr>
+            <tr><td>Project type</td><td>Team project &mdash; individual implementation of all seven patterns</td></tr>
+            <tr><td>Repository</td><td>github.com/CCE-Li/AITU-SDP-FinalExam</td></tr>
+            <tr><td>Date</td><td>November 2026</td></tr>
+        </table>
+    </div>
+</section>
+
+<!-- ================= TOC ================= -->
+<section class="toc">
+    <h2>Table of contents</h2>
+    <ol>
+        <li><span>1. Introduction</span><span class="dots"></span><span class="num">{{pg:1}}</span></li>
+        <li class="lvl2"><span>1.1 Background and motivation</span><span class="dots"></span><span class="num">{{pg:1.1}}</span></li>
+        <li class="lvl2"><span>1.2 Objectives of the project</span><span class="dots"></span><span class="num">{{pg:1.2}}</span></li>
+        <li class="lvl2"><span>1.3 Scope and technologies</span><span class="dots"></span><span class="num">{{pg:1.3}}</span></li>
+        <li class="lvl2"><span>1.4 Structure of this report</span><span class="dots"></span><span class="num">{{pg:1.4}}</span></li>
+
+        <li><span>2. Body</span><span class="dots"></span><span class="num">{{pg:2}}</span></li>
+        <li class="lvl2"><span>2.1 System architecture and package layout</span><span class="dots"></span><span class="num">{{pg:2.1}}</span></li>
+        <li class="lvl2"><span>2.2 Factory Method &mdash; creating dishes</span><span class="dots"></span><span class="num">{{pg:2.2}}</span></li>
+        <li class="lvl2"><span>2.3 Builder &mdash; assembling combo meals</span><span class="dots"></span><span class="num">{{pg:2.3}}</span></li>
+        <li class="lvl2"><span>2.4 Abstract Factory &mdash; cuisine families</span><span class="dots"></span><span class="num">{{pg:2.4}}</span></li>
+        <li class="lvl2"><span>2.5 Bridge &mdash; food type and dining mode</span><span class="dots"></span><span class="num">{{pg:2.5}}</span></li>
+        <li class="lvl2"><span>2.6 Facade &mdash; the checkout process with rollback</span><span class="dots"></span><span class="num">{{pg:2.6}}</span></li>
+        <li class="lvl2"><span>2.7 Strategy &mdash; discount rules</span><span class="dots"></span><span class="num">{{pg:2.7}}</span></li>
+        <li class="lvl2"><span>2.8 Visitor &mdash; calories and receipt reports</span><span class="dots"></span><span class="num">{{pg:2.8}}</span></li>
+        <li class="lvl2"><span>2.9 How the patterns collaborate</span><span class="dots"></span><span class="num">{{pg:2.9}}</span></li>
+        <li class="lvl2"><span>2.10 Screenshots of the running application</span><span class="dots"></span><span class="num">{{pg:2.10}}</span></li>
+        <li class="lvl2"><span>2.11 Verification of the results</span><span class="dots"></span><span class="num">{{pg:2.11}}</span></li>
+
+        <li><span>3. Conclusion</span><span class="dots"></span><span class="num">{{pg:3}}</span></li>
+        <li><span>4. Further work</span><span class="dots"></span><span class="num">{{pg:4}}</span></li>
+        <li><span>Appendix A. Package dependencies</span><span class="dots"></span><span class="num">{{pg:A}}</span></li>
+        <li><span>Appendix B. Full source code</span><span class="dots"></span><span class="num">{{pg:B}}</span></li>
+        <li><span>Appendix C. Build, run and repository</span><span class="dots"></span><span class="num">{{pg:C}}</span></li>
+    </ol>
+</section>
+
+<!-- ================= 1. INTRODUCTION ================= -->
+<h1 class="section first" id="s1">1. Introduction</h1>
+
+<h2 id="s1.1">1.1 Background and motivation</h2>
+<p>
+    A design pattern is a reusable solution to a problem that appears again and again in software design.
+    Patterns are not libraries and they cannot be copied into a project as code; they are descriptions of
+    how responsibilities should be distributed between classes. The value of a pattern only becomes visible
+    when several of them have to work inside one program, because that is the moment when the boundaries
+    between them must be decided.
+</p>
+<p>
+    For this project the domain of a <b>restaurant ordering system</b> was chosen. The domain is small enough to be
+    understood in a few minutes, but it contains several independent reasons to change: the menu grows, meals are
+    assembled from parts, customers receive different discounts, food is served in different channels, and a single
+    checkout touches stock, money and the kitchen. Each of these concerns is isolated behind its own pattern, which
+    makes the system a good demonstration of coordinated pattern usage rather than seven unrelated examples.
+</p>
+
+<h2 id="s1.2">1.2 Objectives of the project</h2>
+<p>The project pursues four objectives:</p>
+<ol>
+    <li>Implement <b>at least six</b> design patterns from the course in a single Java application. This implementation
+        contains <b>seven</b>: Factory Method, Builder, Abstract Factory, Bridge, Facade, Strategy and Visitor.</li>
+    <li>Make the patterns <b>cooperate</b> inside one ordering workflow, so that the result is an application and not a
+        collection of demos.</li>
+    <li>Keep the code <b>short and readable</b>: no framework, no database, no external library, only the JDK.</li>
+    <li>Produce the artefacts required for the defence: UML diagrams, screenshots of the running program and this report.</li>
+</ol>
+
+<h2 id="s1.3">1.3 Scope and technologies</h2>
+<table class="data">
+    <tr><th style="width:32%">Item</th><th>Description</th></tr>
+    <tr><td>Language</td><td>Java 21 (records and pattern matching <code>instanceof</code> are used sparingly)</td></tr>
+    <tr><td>Build tool</td><td>Apache Maven 3.9, packaging <code>jar</code>, executable manifest entry point <code>Main</code></td></tr>
+    <tr><td>Dependencies</td><td>None. Only the Java standard library is used.</td></tr>
+    <tr><td>User interface</td><td>Console application; every step prints a labelled line so the behaviour is observable</td></tr>
+    <tr><td>Size</td><td>32 classes in 8 packages, about 1,100 lines of code</td></tr>
+    <tr><td>UML tool</td><td>PlantUML 1.2024.8 (text based, sources are stored next to the images)</td></tr>
+</table>
+<p class="note">
+    The scope deliberately excludes persistence and networking. Adding them would not demonstrate any additional design
+    pattern and would hide the pattern structure behind infrastructure code. Section 4 explains how they could be added later.
+</p>
+
+<h2 id="s1.4">1.4 Structure of this report</h2>
+<p>
+    Section 2 is the body of the report. It starts with the architecture of the system (2.1), then presents the seven
+    patterns in the order in which an order is processed: creation of dishes (2.2&ndash;2.4), serving (2.5), checkout
+    (2.6&ndash;2.7) and reporting (2.8). Section 2.9 explains how the patterns collaborate and maps them to the project
+    requirements; 2.10 contains the screenshots and 2.11 verifies the numerical results. Section 3 concludes the report,
+    Section 4 lists further work, and the appendices contain the complete class diagram, the full source code and the
+    build instructions.
+</p>

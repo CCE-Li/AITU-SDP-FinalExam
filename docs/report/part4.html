@@ -1,0 +1,80 @@
+<!-- ================= APPENDIX A ================= -->
+<h1 class="section" id="sA">Appendix A. Package dependencies</h1>
+<p>
+    The detailed class diagrams of every pattern are Figures&nbsp;2&ndash;9 in the body of the report. This appendix adds the
+    view that is not visible in those figures: the dependency direction between the eight packages of the application.
+</p>
+
+<figure class="wide">
+    <img src="../uml/package-dependencies.png" alt="Package dependency diagram">
+    <figcaption><b>Figure A1.</b> Package dependencies. The creation packages feed the builder, the builder and the bridge
+        produce model objects, the facade composes the model with the strategy and the bridge, and the visitor is attached to
+        the model through <code>accept()</code>.</figcaption>
+</figure>
+
+<p>
+    The rule behind the diagram is simple and was respected in the code: a package may depend on <code>model</code> and on
+    the interfaces of another pattern, but never on the concrete implementation of another pattern. This is what allows the
+    classes of one pattern to be replaced without touching the others &mdash; for example a new
+    <code>PricingStrategy</code> is added without editing the facade.
+</p>
+<p class="note">
+    A single diagram containing all 32 classes is also kept in the repository as
+    <code>docs/uml/class-diagram.png</code> (together with its PlantUML source). It is intended for A3 printing, because at
+    A4 width the class names would become too small to read; the seven per-pattern diagrams in the body are the readable
+    version of the same information.
+</p>
+
+<!-- ================= APPENDIX B ================= -->
+<h1 class="section" id="sB">Appendix B. Full source code</h1>
+<p>
+    The code below is the complete content of the <code>src/main/java</code> directory, grouped by package. The order is the
+    same as in the repository: the shared model first, then the creation patterns, the structural patterns, the behavioural
+    patterns and finally the client.
+</p>
+
+{{CODE}}
+
+<!-- ================= APPENDIX C ================= -->
+<h1 class="section" id="sC">Appendix C. Build, run and repository</h1>
+
+<h3>C.1 Requirements</h3>
+<ul>
+    <li>JDK 21 or newer</li>
+    <li>Apache Maven 3.8 or newer (optional, plain <code>javac</code> also works)</li>
+</ul>
+
+<h3>C.2 Build and run</h3>
+<pre class="code">// with Maven
+mvn clean package
+java -jar target/restaurant-system-1.0.0.jar
+
+// without Maven (plain JDK)
+javac -encoding UTF-8 -d out $(find src/main/java -name "*.java")
+java -cp out Main</pre>
+
+<h3>C.3 Regenerating the diagrams</h3>
+<pre class="code">java -jar plantuml.jar -tpng -charset UTF-8 docs/uml/*.puml</pre>
+
+<h3>C.4 Repository</h3>
+<p>
+    The source code is maintained in the repository <code>github.com/CCE-Li/AITU-SDP-FinalExam</code> on the
+    <code>main</code> branch. The work was committed pattern by pattern, so the history documents the order in which the
+    system was built:
+</p>
+
+<table class="data">
+    <tr><th style="width:16%">Commit</th><th>Message</th></tr>
+    <tr><td><code>ef23b27</code></td><td>chore: init project skeleton with model layer</td></tr>
+    <tr><td><code>fb7bfcf</code></td><td>feat(factory): add Factory Method for dish creation</td></tr>
+    <tr><td><code>0b26c4b</code></td><td>feat(builder): add Builder for custom combo meals</td></tr>
+    <tr><td><code>9211289</code></td><td>feat(abstractfactory): add Abstract Factory for meal families</td></tr>
+    <tr><td><code>9597608</code></td><td>feat(bridge): separate food type from dining mode</td></tr>
+    <tr><td><code>93428ac</code></td><td>feat(strategy): add pricing strategies for different customers</td></tr>
+    <tr><td><code>2ad4709</code></td><td>feat(visitor): add calorie and report visitors</td></tr>
+    <tr><td><code>a429019</code></td><td>feat(facade): add OrderFacade with stock, payment, kitchen and notify</td></tr>
+    <tr><td><code>542747f</code></td><td>feat(main): add client demo for all 7 patterns</td></tr>
+</table>
+
+</body>
+</html>

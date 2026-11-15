@@ -1,0 +1,374 @@
+/* ============ print layout ============ */
+@page {
+    size: A4;
+    margin: 20mm 18mm 18mm 18mm;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+body {
+    margin: 0;
+    font-family: "Cambria", "Georgia", "Times New Roman", serif;
+    font-size: 10.5pt;
+    line-height: 1.58;
+    color: #1b1b1b;
+    text-align: justify;
+    hyphens: auto;
+}
+
+h1, h2, h3, h4, .cover, .toc, table, .file-name {
+    font-family: "Segoe UI", "Calibri", "Helvetica Neue", sans-serif;
+    text-align: left;
+    hyphens: none;
+}
+
+/* ============ cover ============ */
+.cover {
+    height: 250mm;
+    display: flex;
+    flex-direction: column;
+    break-after: page;
+}
+
+.cover .uni {
+    font-size: 11pt;
+    letter-spacing: 2.4px;
+    text-transform: uppercase;
+    color: #16324f;
+    font-weight: 600;
+}
+
+.cover .faculty {
+    font-size: 9.5pt;
+    color: #5b6b7c;
+    margin-top: 4px;
+}
+
+.cover .rule {
+    height: 3px;
+    background: #16324f;
+    margin: 10px 0 0 0;
+}
+
+.cover .rule.thin {
+    height: 1px;
+    background: #c3ced9;
+    margin-top: 4px;
+}
+
+.cover .middle {
+    margin-top: 62mm;
+}
+
+.cover .kicker {
+    font-size: 10pt;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #7d8b99;
+}
+
+.cover h1 {
+    font-size: 30pt;
+    line-height: 1.18;
+    margin: 14px 0 6px 0;
+    color: #16324f;
+    font-weight: 700;
+}
+
+.cover .subtitle {
+    font-size: 13pt;
+    color: #3f5566;
+    font-style: italic;
+    font-family: "Cambria", "Georgia", serif;
+    margin-top: 6px;
+}
+
+.cover .patterns {
+    margin-top: 20px;
+    font-size: 9.5pt;
+    color: #4a5a6a;
+    letter-spacing: 0.3px;
+}
+
+.cover .bottom {
+    margin-top: auto;
+    font-size: 10pt;
+}
+
+.cover .meta {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.cover .meta td {
+    padding: 5px 0;
+    border-bottom: 1px solid #e2e8ee;
+    font-size: 10pt;
+}
+
+.cover .meta td:first-child {
+    width: 42mm;
+    color: #6b7b8a;
+    font-size: 9pt;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
+/* ============ headings ============ */
+h1.section {
+    font-size: 17pt;
+    color: #16324f;
+    margin: 0 0 12px 0;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #16324f;
+    break-before: page;
+    font-weight: 700;
+}
+
+h1.section.first {
+    break-before: auto;
+}
+
+h2 {
+    font-size: 12.5pt;
+    color: #16324f;
+    margin: 20px 0 7px 0;
+    font-weight: 600;
+}
+
+h3 {
+    font-size: 10.8pt;
+    color: #23455f;
+    margin: 15px 0 5px 0;
+    font-weight: 600;
+}
+
+p {
+    margin: 0 0 8px 0;
+}
+
+ul, ol {
+    margin: 6px 0 10px 0;
+    padding-left: 18px;
+}
+
+li {
+    margin-bottom: 4px;
+}
+
+/* ============ toc ============ */
+.toc {
+    break-after: page;
+}
+
+.toc h2 {
+    font-size: 15pt;
+    border-bottom: 1px solid #c3ced9;
+    padding-bottom: 5px;
+    margin-top: 0;
+}
+
+.toc ol {
+    list-style: none;
+    padding-left: 0;
+    margin: 10px 0 0 0;
+}
+
+.toc li {
+    display: flex;
+    align-items: baseline;
+    font-size: 10pt;
+    margin: 0 0 5px 0;
+}
+
+.toc li.lvl2 {
+    padding-left: 14px;
+    font-size: 9.5pt;
+    color: #33475b;
+    margin-bottom: 3px;
+}
+
+.toc .dots {
+    flex: 1;
+    border-bottom: 1px dotted #b9c4cf;
+    margin: 0 6px 3px 6px;
+}
+
+.toc .num {
+    font-variant-numeric: tabular-nums;
+    color: #16324f;
+    font-weight: 600;
+}
+
+.toc li.lvl2 .num {
+    font-weight: 400;
+}
+
+/* ============ figures ============ */
+figure {
+    margin: 12px 0 14px 0;
+    break-inside: avoid;
+    text-align: center;
+}
+
+figure img {
+    max-width: 100%;
+    border: 1px solid #d8dee6;
+    padding: 4px;
+    background: #fff;
+}
+
+figure.small img {
+    max-width: 82%;
+}
+
+figure.wide img {
+    max-width: 100%;
+}
+
+figure.screenshot img {
+    max-height: 112mm;
+    width: auto;
+    max-width: 100%;
+    border: none;
+    padding: 0;
+}
+
+figcaption {
+    font-family: "Segoe UI", sans-serif;
+    font-size: 8.8pt;
+    color: #55677a;
+    margin-top: 6px;
+    text-align: center;
+    line-height: 1.45;
+}
+
+figcaption b {
+    color: #16324f;
+}
+
+/* ============ code ============ */
+pre.code {
+    font-family: "Consolas", "Cascadia Mono", monospace;
+    font-size: 8.3pt;
+    line-height: 1.42;
+    background: #f7f9fb;
+    border: 1px solid #e1e7ed;
+    border-left: 3px solid #16324f;
+    padding: 8px 10px;
+    margin: 8px 0 12px 0;
+    overflow-x: hidden;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    text-align: left;
+    color: #1f2d3a;
+    break-inside: avoid;
+}
+
+code {
+    font-family: "Consolas", monospace;
+    font-size: 9pt;
+    background: #f1f4f7;
+    padding: 0 3px;
+    border-radius: 2px;
+}
+
+/* ============ tables ============ */
+table.data {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 14px 0;
+    font-size: 8.9pt;
+    break-inside: avoid;
+}
+
+table.data th {
+    background: #16324f;
+    color: #fff;
+    text-align: left;
+    padding: 6px 7px;
+    font-weight: 600;
+    font-size: 8.8pt;
+}
+
+table.data td {
+    padding: 5px 7px;
+    border-bottom: 1px solid #e1e7ed;
+    vertical-align: top;
+}
+
+table.data tr:nth-child(even) td {
+    background: #f7f9fb;
+}
+
+table.data td.center {
+    text-align: center;
+}
+
+/* ============ callout ============ */
+.callout {
+    background: #f2f7f4;
+    border-left: 3px solid #2e7d5b;
+    padding: 8px 12px;
+    margin: 10px 0 12px 0;
+    font-size: 9.6pt;
+    break-inside: avoid;
+}
+
+.callout .label {
+    font-family: "Segoe UI", sans-serif;
+    font-size: 8.2pt;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: #2e7d5b;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 2px;
+}
+
+/* ============ appendix code ============ */
+.file {
+    break-inside: auto;
+    margin-bottom: 14px;
+}
+
+.file-name {
+    font-size: 8.6pt;
+    font-weight: 600;
+    color: #fff;
+    background: #2b4a68;
+    padding: 3px 9px;
+    letter-spacing: 0.3px;
+}
+
+.file pre.code {
+    margin-top: 0;
+    border-top: none;
+    font-size: 7.9pt;
+    line-height: 1.38;
+    break-inside: auto;
+}
+
+.package-title {
+    font-family: "Segoe UI", sans-serif;
+    font-size: 11pt;
+    color: #16324f;
+    font-weight: 600;
+    margin: 16px 0 8px 0;
+    padding-bottom: 3px;
+    border-bottom: 1px solid #c3ced9;
+}
+
+.note {
+    font-size: 9.3pt;
+    color: #55677a;
+    font-style: italic;
+}

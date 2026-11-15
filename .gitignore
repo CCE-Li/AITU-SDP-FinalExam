@@ -14,3 +14,9 @@ out/
 # OS
 .DS_Store
 Thumbs.db
+
+# generated report artefacts
+docs/report/report.html
+docs/report/report.pdf
+docs/report/report-pass1.pdf
+docs/report/_overlay_*.pdf
