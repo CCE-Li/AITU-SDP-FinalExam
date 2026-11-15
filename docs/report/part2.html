@@ -72,6 +72,14 @@
 }</pre>
 
 <p>
+    <b>Note on the exact form.</b> The operation takes the dish name as a parameter, so a concrete creator decides the
+    <i>category and the menu data</i> rather than the product class: <code>Dish</code> is the only product type in the
+    system. In GoF terms this is a parameterised factory method, and the <code>switch</code> inside each concrete creator
+    is the simple factory that turns a name into values. Splitting the product into <code>Burger</code>, <code>Pizza</code>
+    and <code>Drink</code> subclasses would let the polymorphism reach the product class as well; it is not done here
+    because every dish carries the same three fields, so the extra hierarchy would add classes without adding behaviour.
+</p>
+<p>
     <b>Why it is used here.</b> Prices and calories belong to the menu, not to the client. If the kitchen changes the
     price of a burger, only <code>BurgerFactory</code> changes. A new category (for example a dessert factory) is added
     as a new class and the existing client code is not touched at all.
