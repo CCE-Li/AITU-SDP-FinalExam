@@ -1,0 +1,47 @@
+@startuml
+skinparam dpi 150
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 13
+skinparam nodesep 26
+skinparam ranksep 44
+hide empty members
+
+package "bridge" {
+  interface DiningMode {
+    + getName() : String
+    + serve(foodName : String) : String
+    + extraFee() : double
+  }
+  class DineInMode {
+    + extraFee() : double
+  }
+  class DeliveryMode {
+    + extraFee() : double
+  }
+  abstract class FoodRefined {
+    # dish : Dish
+    # mode : DiningMode
+    + {abstract} getFoodType() : String
+    # {abstract} getServiceNote() : String
+    + serve() : String
+    + getPrice() : double
+  }
+  class StapleFood {
+    + getFoodType() : String
+  }
+  class DrinkItem {
+    + getFoodType() : String
+  }
+}
+
+class Dish
+
+DiningMode <|.. DineInMode
+DiningMode <|.. DeliveryMode
+FoodRefined <|-- StapleFood
+FoodRefined <|-- DrinkItem
+FoodRefined o--> DiningMode : mode
+FoodRefined o--> Dish : dish
+@enduml

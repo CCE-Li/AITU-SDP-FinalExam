@@ -1,0 +1,35 @@
+@startuml
+skinparam dpi 200
+skinparam shadowing false
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam componentStyle rectangle
+skinparam nodesep 36
+skinparam ranksep 48
+
+rectangle "factory\nFactory Method" as F #FFF8E7
+rectangle "abstractfactory\nAbstract Factory" as AF #FDEEF0
+rectangle "builder\nBuilder" as B #EAF6EA
+rectangle "model\nDish / ComboMeal / Order" as M #F7F9FC
+rectangle "bridge\nBridge" as BR #EFEAF9
+rectangle "strategy\nStrategy" as S #E8F4F8
+rectangle "visitor\nVisitor" as V #F3F3F3
+rectangle "facade\nFacade" as FA #FBF3E4
+
+F --> B
+AF --> B
+B --> M
+BR --> M
+V --> M
+M ..> V : accept
+FA --> M
+FA --> S
+FA --> BR
+
+note top of M
+  Dependency rule: every package may depend on model,
+  but no package depends on the implementation of another
+  pattern package. The client Main only uses the public
+  interfaces of all eight packages.
+end note
+@enduml

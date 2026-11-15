@@ -1,0 +1,47 @@
+@startuml
+skinparam dpi 200
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 11
+skinparam nodesep 16
+skinparam ranksep 30
+hide empty members
+left to right direction
+
+package "facade" {
+  class OrderFacade {
+    - inventory : Inventory
+    - payment : PaymentService
+    - kitchen : Kitchen
+    - notifier : Notifier
+    + placeOrder(order, strategy, mode) : boolean
+    + addStock(name, amount) : void
+  }
+  class Inventory {
+    + reserve(dishes) : boolean
+    + release(dishes) : void
+  }
+  class PaymentService {
+    + pay(orderId, amount) : boolean
+  }
+  class Kitchen {
+    + cook(order) : void
+  }
+  class Notifier {
+    + notifyCustomer(message) : void
+  }
+}
+
+class PricingStrategy
+class DiningMode
+class Order
+
+OrderFacade o--> Inventory
+OrderFacade o--> PaymentService
+OrderFacade o--> Kitchen
+OrderFacade o--> Notifier
+OrderFacade ..> PricingStrategy
+OrderFacade ..> DiningMode
+OrderFacade ..> Order
+@enduml

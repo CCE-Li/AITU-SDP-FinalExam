@@ -1,0 +1,40 @@
+@startuml
+skinparam dpi 150
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 13
+skinparam nodesep 26
+skinparam ranksep 40
+hide empty members
+
+package "factory" {
+  interface DishFactory {
+    + create(name : String) : Dish
+    + getCategory() : String
+  }
+  class BurgerFactory {
+    + create(name : String) : Dish
+    + getCategory() : String
+  }
+  class PizzaFactory {
+    + create(name : String) : Dish
+    + getCategory() : String
+  }
+  class DrinkFactory {
+    + create(name : String) : Dish
+    + getCategory() : String
+  }
+}
+
+class Dish {
+  - name : String
+  - price : double
+  - calories : int
+}
+
+DishFactory <|.. BurgerFactory
+DishFactory <|.. PizzaFactory
+DishFactory <|.. DrinkFactory
+DishFactory ..> Dish : <<creates>>
+@enduml

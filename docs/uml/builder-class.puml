@@ -1,0 +1,45 @@
+@startuml
+skinparam dpi 150
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 13
+skinparam nodesep 26
+skinparam ranksep 40
+hide empty members
+
+package "builder" {
+  abstract class MealBuilder {
+    # mealName : String
+    # parts : List~Dish~
+    + reset() : void
+    + setMealName(name : String) : void
+    + addMain(dish : Dish) : void
+    + addSide(dish : Dish) : void
+    + addDrink(dish : Dish) : void
+    + {abstract} getMeal() : ComboMeal
+  }
+  class CustomMealBuilder {
+    + getMeal() : ComboMeal
+  }
+  class MealDirector {
+    - builder : MealBuilder
+    + buildClassicCombo() : ComboMeal
+    + buildLightCombo() : ComboMeal
+    + buildCustomCombo(name, main, side, drink) : ComboMeal
+  }
+}
+
+class Dish
+class ComboMeal {
+  - parts : List~Dish~
+  + getParts() : List~Dish~
+}
+class DishFactory
+
+MealBuilder <|-- CustomMealBuilder
+MealDirector o--> MealBuilder : uses
+MealBuilder ..> ComboMeal : <<builds>>
+ComboMeal --|> Dish
+MealDirector ..> DishFactory : <<uses>>
+@enduml

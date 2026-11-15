@@ -1,0 +1,26 @@
+======================================================
+4. Bridge: food type x dining mode
+======================================================
+Staple | [Dine-in] Beef Burger is served on table 12 (cutlery included) -> $6.50
+Staple | [Delivery] Beef Burger is packed and sent to the customer (cutlery included) -> $8.50
+Drink | [Dine-in] Coke is served on table 12 (straw included) -> $2.00
+Drink | [Delivery] Coke is packed and sent to the customer (straw included) -> $4.00
+
+======================================================
+5. Visitor: receipt and calories
+======================================================
+----- ORDER RECEIPT -----
+Order no: 1001
+  Classic Combo          $  9.45  1020 kcal
+  Pepperoni Pizza        $  8.90   820 kcal
+  Coke                   $  2.00   150 kcal
+-------------------------
+Items: 3   Subtotal: $20.35   Calories: 1990
+Total calories of order #1001: 1990
+
+======================================================
+6. Strategy: price for different customers
+======================================================
+Normal price               $20.35
+VIP 20% off                $16.28
+Holiday full reduction     $20.35

@@ -1,0 +1,11 @@
+======================================================
+7. Facade: place the order
+======================================================
+  [Stock] {Water=5, Fries=5, Beef Burger=5, Coke=5, Soy Milk=5, Veggie Burger=3, Pepperoni Pizza=2, Pickles=5, Beef Noodles=3, Salad=3}
+--- order #1001 | VIP 20% off | Delivery ---
+  [Cashier] subtotal $20.35 -> to pay $18.28
+  [Payment] order #1001 paid $18.28
+  [Kitchen] cooking order #1001 (3 item(s))
+  [Notify] Order #1001 confirmed, total $18.28 (Delivery).
+Order #1001 accepted: true
+  [Stock] {Water=5, Fries=4, Beef Burger=4, Coke=3, Soy Milk=5, Veggie Burger=3, Pepperoni Pizza=1, Pickles=5, Beef Noodles=3, Salad=3}

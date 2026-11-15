@@ -1,0 +1,77 @@
+
+======================================================
+1. Factory Method: create dishes
+======================================================
+Beef Burger            $ 6.50   550 kcal
+Veggie Burger          $ 4.80   390 kcal
+Pepperoni Pizza        $ 8.90   820 kcal
+Coke                   $ 2.00   150 kcal
+Water                  $ 1.00     0 kcal
+
+======================================================
+2. Abstract Factory: Chinese / Western meal family
+======================================================
+Chinese main: Beef Noodles           $ 4.50   600 kcal
+Chinese drink: Soy Milk               $ 2.50   120 kcal
+Western main: Beef Burger            $ 6.50   550 kcal
+Western drink: Coke                   $ 2.00   150 kcal
+
+======================================================
+3. Builder: build combo meals
+======================================================
+Classic Combo          $ 9.45  1020 kcal
+Light Combo            $ 7.20   480 kcal
+Chinese Set            $ 7.20   750 kcal
+
+======================================================
+4. Bridge: food type x dining mode
+======================================================
+Staple | [Dine-in] Beef Burger is served on table 12 (cutlery included) -> $6.50
+Staple | [Delivery] Beef Burger is packed and sent to the customer (cutlery included) -> $8.50
+Drink | [Dine-in] Coke is served on table 12 (straw included) -> $2.00
+Drink | [Delivery] Coke is packed and sent to the customer (straw included) -> $4.00
+
+======================================================
+5. Visitor: receipt and calories
+======================================================
+----- ORDER RECEIPT -----
+Order no: 1001
+  Classic Combo          $  9.45  1020 kcal
+  Pepperoni Pizza        $  8.90   820 kcal
+  Coke                   $  2.00   150 kcal
+-------------------------
+Items: 3   Subtotal: $20.35   Calories: 1990
+Total calories of order #1001: 1990
+
+======================================================
+6. Strategy: price for different customers
+======================================================
+Normal price               $20.35
+VIP 20% off                $16.28
+Holiday full reduction     $20.35
+
+======================================================
+7. Facade: place the order
+======================================================
+  [Stock] {Water=5, Fries=5, Beef Burger=5, Coke=5, Soy Milk=5, Veggie Burger=3, Pepperoni Pizza=2, Pickles=5, Beef Noodles=3, Salad=3}
+--- order #1001 | VIP 20% off | Delivery ---
+  [Cashier] subtotal $20.35 -> to pay $18.28
+  [Payment] order #1001 paid $18.28
+  [Kitchen] cooking order #1001 (3 item(s))
+  [Notify] Order #1001 confirmed, total $18.28 (Delivery).
+Order #1001 accepted: true
+  [Stock] {Water=5, Fries=4, Beef Burger=4, Coke=3, Soy Milk=5, Veggie Burger=3, Pepperoni Pizza=1, Pickles=5, Beef Noodles=3, Salad=3}
+
+======================================================
+8. Facade: payment fails, stock goes back
+======================================================
+--- order #1002 | Normal price | Dine-in ---
+  [Cashier] subtotal $7.00 -> to pay $7.00
+  [Payment] order #1002 refused: $7.00 is over the card limit
+  [Notify] Payment failed, the stock of order #1002 has been released.
+Order #1002 accepted: false
+  [Stock] {Water=5, Fries=4, Beef Burger=4, Coke=3, Soy Milk=5, Veggie Burger=3, Pepperoni Pizza=1, Pickles=5, Beef Noodles=3, Salad=3}
+
+======================================================
+Done
+======================================================

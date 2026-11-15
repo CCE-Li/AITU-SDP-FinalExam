@@ -1,0 +1,23 @@
+======================================================
+1. Factory Method: create dishes
+======================================================
+Beef Burger            $ 6.50   550 kcal
+Veggie Burger          $ 4.80   390 kcal
+Pepperoni Pizza        $ 8.90   820 kcal
+Coke                   $ 2.00   150 kcal
+Water                  $ 1.00     0 kcal
+
+======================================================
+2. Abstract Factory: Chinese / Western meal family
+======================================================
+Chinese main: Beef Noodles           $ 4.50   600 kcal
+Chinese drink: Soy Milk               $ 2.50   120 kcal
+Western main: Beef Burger            $ 6.50   550 kcal
+Western drink: Coke                   $ 2.00   150 kcal
+
+======================================================
+3. Builder: build combo meals
+======================================================
+Classic Combo          $ 9.45  1020 kcal
+Light Combo            $ 7.20   480 kcal
+Chinese Set            $ 7.20   750 kcal

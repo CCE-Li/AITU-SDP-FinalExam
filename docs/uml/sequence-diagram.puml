@@ -1,0 +1,67 @@
+@startuml
+skinparam dpi 130
+skinparam shadowing false
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam sequenceMessageAlign left
+autonumber
+
+actor "Cashier" as User
+participant "Main\n(client)" as Main
+participant "OrderFacade" as Facade
+participant "PricingStrategy" as Strategy
+participant "Inventory" as Inv
+participant "PaymentService" as Pay
+participant "Kitchen" as Kit
+participant "Notifier" as Noti
+
+User -> Main : order #1001
+Main -> Facade : placeOrder(order, strategy, mode)
+activate Facade
+
+Facade -> Strategy : calculate(subtotal)
+activate Strategy
+Strategy --> Facade : discounted price
+deactivate Strategy
+Facade -> Facade : finalPrice = price + mode.extraFee()
+
+Facade -> Inv : reserve(order.getDishes())
+activate Inv
+alt every dish in stock
+    Inv --> Facade : true
+    deactivate Inv
+
+    Facade -> Pay : pay(id, finalPrice)
+    activate Pay
+    alt payment accepted
+        Pay --> Facade : true
+        deactivate Pay
+        Facade -> Kit : cook(order)
+        activate Kit
+        Kit --> Facade
+        deactivate Kit
+        Facade -> Noti : notifyCustomer("order confirmed")
+        Facade --> Main : true
+        note right of Facade : stock is kept
+
+    else payment refused
+        Pay --> Facade : false
+        deactivate Pay
+        Facade -> Inv : release(order.getDishes())
+        activate Inv
+        note right of Inv : ROLLBACK:\nstock is given back
+        Inv --> Facade
+        deactivate Inv
+        Facade -> Noti : notifyCustomer("payment failed")
+        Facade --> Main : false
+    end
+
+else some dish is sold out
+    Inv --> Facade : false
+    deactivate Inv
+    Facade -> Noti : notifyCustomer("sold out")
+    Facade --> Main : false
+end
+
+deactivate Facade
+@enduml

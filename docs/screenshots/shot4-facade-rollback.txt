@@ -1,0 +1,9 @@
+======================================================
+8. Facade: payment fails, stock goes back
+======================================================
+--- order #1002 | Normal price | Dine-in ---
+  [Cashier] subtotal $7.00 -> to pay $7.00
+  [Payment] order #1002 refused: $7.00 is over the card limit
+  [Notify] Payment failed, the stock of order #1002 has been released.
+Order #1002 accepted: false
+  [Stock] {Water=5, Fries=4, Beef Burger=4, Coke=3, Soy Milk=5, Veggie Burger=3, Pepperoni Pizza=1, Pickles=5, Beef Noodles=3, Salad=3}

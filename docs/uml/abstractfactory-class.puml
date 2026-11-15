@@ -1,0 +1,35 @@
+@startuml
+skinparam dpi 150
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 13
+skinparam nodesep 26
+skinparam ranksep 40
+hide empty members
+
+package "abstractfactory" {
+  interface MealAbstractFactory {
+    + createMainDish() : Dish
+    + createDrink() : Dish
+    + getCuisine() : String
+  }
+  class ChineseMealFactory {
+    + createMainDish() : Dish
+    + createDrink() : Dish
+    + getCuisine() : String
+  }
+  class WesternMealFactory {
+    + createMainDish() : Dish
+    + createDrink() : Dish
+    + getCuisine() : String
+  }
+}
+
+class Dish
+
+MealAbstractFactory <|.. ChineseMealFactory
+MealAbstractFactory <|.. WesternMealFactory
+ChineseMealFactory ..> Dish : "Beef Noodles / Soy Milk"
+WesternMealFactory ..> Dish : "Beef Burger / Coke"
+@enduml

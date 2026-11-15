@@ -1,0 +1,40 @@
+@startuml
+skinparam dpi 130
+skinparam shadowing false
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam componentStyle rectangle
+
+package "1. Object creation" #FFF8E7 {
+  [Factory Method\ndish factories] as FM
+  [Abstract Factory\ncuisine families] as AF
+  [Builder\ncombo meal] as BU
+}
+
+package "2. Order model" #F7F9FC {
+  [Order / ComboMeal] as OM
+}
+
+package "3. Serving" #EFEAF9 {
+  [Bridge\nfood type x dining mode] as BR
+}
+
+package "4. Reporting" #F3F3F3 {
+  [Visitor\ncalories / receipt] as VI
+}
+
+package "5. Checkout" #FBF3E4 {
+  [Facade\nstock, payment, kitchen] as FA
+  [Strategy\ndiscount rules] as ST
+}
+
+FM --> BU : creates the parts
+AF --> BU : supplies a cuisine family
+BU --> OM : builds one meal line
+BR --> OM : adds serving mode and fee
+OM --> VI : accept(visitor)
+OM --> FA : placeOrder(order, ...)
+ST --> FA : calculates the final price
+BR --> FA : delivery fee
+FA --> VI : order confirmed
+@enduml

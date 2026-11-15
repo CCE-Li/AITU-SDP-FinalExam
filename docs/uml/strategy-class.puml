@@ -1,0 +1,33 @@
+@startuml
+skinparam dpi 150
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 13
+skinparam nodesep 26
+skinparam ranksep 40
+hide empty members
+
+package "strategy" {
+  interface PricingStrategy {
+    + calculate(total : double) : double
+    + getName() : String
+  }
+  class NormalPricingStrategy {
+    + calculate(total : double) : double
+  }
+  class VipDiscountStrategy {
+    + calculate(total : double) : double
+  }
+  class HolidayDiscountStrategy {
+    + calculate(total : double) : double
+  }
+}
+
+class OrderFacade
+
+PricingStrategy <|.. NormalPricingStrategy
+PricingStrategy <|.. VipDiscountStrategy
+PricingStrategy <|.. HolidayDiscountStrategy
+OrderFacade ..> PricingStrategy : strategy
+@enduml

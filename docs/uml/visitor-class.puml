@@ -1,0 +1,45 @@
+@startuml
+skinparam dpi 150
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 13
+skinparam nodesep 26
+skinparam ranksep 44
+hide empty members
+
+package "visitor" {
+  interface OrderVisitor {
+    + visit(dish : Dish) : void
+    + visit(order : Order) : void
+  }
+  class CalorieCalculatorVisitor {
+    - totalCalories : int
+    + visit(dish : Dish) : void
+    + visit(order : Order) : void
+    + getTotalCalories() : int
+  }
+  class ReportExporterVisitor {
+    - report : StringBuilder
+    + visit(dish : Dish) : void
+    + visit(order : Order) : void
+    + getReport() : String
+  }
+}
+
+package "model" {
+  class Dish {
+    + accept(visitor : OrderVisitor) : void
+  }
+  class Order {
+    - dishes : List~Dish~
+    + accept(visitor : OrderVisitor) : void
+  }
+}
+
+OrderVisitor <|.. CalorieCalculatorVisitor
+OrderVisitor <|.. ReportExporterVisitor
+Dish ..> OrderVisitor : accept
+Order ..> OrderVisitor : accept
+Order o-- Dish
+@enduml

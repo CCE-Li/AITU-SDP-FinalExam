@@ -1,0 +1,196 @@
+@startuml
+skinparam dpi 130
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam defaultFontName "Segoe UI"
+skinparam defaultFontSize 12
+skinparam nodesep 22
+skinparam ranksep 34
+hide empty members
+
+package "model" #F7F9FC {
+  class Dish {
+    - name : String
+    - price : double
+    - calories : int
+    + getName() : String
+    + getPrice() : double
+    + getCalories() : int
+    + accept(OrderVisitor) : void
+  }
+  class ComboMeal {
+    - parts : List~Dish~
+    + getParts() : List~Dish~
+  }
+  class Order {
+    - id : int
+    - dishes : List~Dish~
+    + addDish(Dish) : void
+    + getDishes() : List~Dish~
+    + getTotalPrice() : double
+    + accept(OrderVisitor) : void
+  }
+}
+
+package "factory" #FFF8E7 {
+  interface DishFactory {
+    + create(name : String) : Dish
+    + getCategory() : String
+  }
+  class BurgerFactory
+  class PizzaFactory
+  class DrinkFactory
+}
+
+package "builder" #EAF6EA {
+  abstract class MealBuilder {
+    # mealName : String
+    # parts : List~Dish~
+    + reset() : void
+    + setMealName(String) : void
+    + addMain(Dish) : void
+    + addSide(Dish) : void
+    + addDrink(Dish) : void
+    + {abstract} getMeal() : ComboMeal
+  }
+  class CustomMealBuilder {
+    + getMeal() : ComboMeal
+  }
+  class MealDirector {
+    - builder : MealBuilder
+    + buildClassicCombo() : ComboMeal
+    + buildLightCombo() : ComboMeal
+    + buildCustomCombo(String, Dish, Dish, Dish) : ComboMeal
+  }
+}
+
+package "abstractfactory" #FDEEF0 {
+  interface MealAbstractFactory {
+    + createMainDish() : Dish
+    + createDrink() : Dish
+    + getCuisine() : String
+  }
+  class ChineseMealFactory
+  class WesternMealFactory
+}
+
+package "bridge" #EFEAF9 {
+  interface DiningMode {
+    + getName() : String
+    + serve(foodName : String) : String
+    + extraFee() : double
+  }
+  class DineInMode
+  class DeliveryMode
+  abstract class FoodRefined {
+    # dish : Dish
+    # mode : DiningMode
+    + {abstract} getFoodType() : String
+    # {abstract} getServiceNote() : String
+    + serve() : String
+    + getPrice() : double
+  }
+  class StapleFood
+  class DrinkItem
+}
+
+package "strategy" #E8F4F8 {
+  interface PricingStrategy {
+    + calculate(total : double) : double
+    + getName() : String
+  }
+  class NormalPricingStrategy
+  class VipDiscountStrategy
+  class HolidayDiscountStrategy
+}
+
+package "visitor" #F3F3F3 {
+  interface OrderVisitor {
+    + visit(dish : Dish) : void
+    + visit(order : Order) : void
+  }
+  class CalorieCalculatorVisitor {
+    - totalCalories : int
+    + getTotalCalories() : int
+  }
+  class ReportExporterVisitor {
+    - report : StringBuilder
+    + getReport() : String
+  }
+}
+
+package "facade" #FBF3E4 {
+  class OrderFacade {
+    - inventory : Inventory
+    - payment : PaymentService
+    - kitchen : Kitchen
+    - notifier : Notifier
+    + placeOrder(Order, PricingStrategy, DiningMode) : boolean
+    + addStock(String, int) : void
+    + setPaymentLimit(double) : void
+  }
+  class Inventory {
+    - stock : Map~String,Integer~
+    + reserve(List~Dish~) : boolean
+    + release(List~Dish~) : void
+  }
+  class PaymentService {
+    - limit : double
+    + pay(orderId : int, amount : double) : boolean
+  }
+  class Kitchen {
+    + cook(order : Order) : void
+  }
+  class Notifier {
+    + notifyCustomer(message : String) : void
+  }
+}
+
+ComboMeal --|> Dish
+Order o-- "*" Dish
+Dish ..> OrderVisitor : accept
+Order ..> OrderVisitor : accept
+OrderVisitor <|.. CalorieCalculatorVisitor
+OrderVisitor <|.. ReportExporterVisitor
+
+DishFactory <|.. BurgerFactory
+DishFactory <|.. PizzaFactory
+DishFactory <|.. DrinkFactory
+
+MealBuilder <|-- CustomMealBuilder
+MealDirector o--> MealBuilder
+MealBuilder ..> ComboMeal : creates
+MealDirector ..> DishFactory : uses
+
+MealAbstractFactory <|.. ChineseMealFactory
+MealAbstractFactory <|.. WesternMealFactory
+
+DiningMode <|.. DineInMode
+DiningMode <|.. DeliveryMode
+FoodRefined <|-- StapleFood
+FoodRefined <|-- DrinkItem
+FoodRefined o--> DiningMode
+FoodRefined o--> Dish
+
+PricingStrategy <|.. NormalPricingStrategy
+PricingStrategy <|.. VipDiscountStrategy
+PricingStrategy <|.. HolidayDiscountStrategy
+
+OrderFacade o--> Inventory
+OrderFacade o--> PaymentService
+OrderFacade o--> Kitchen
+OrderFacade o--> Notifier
+OrderFacade ..> PricingStrategy
+OrderFacade ..> DiningMode
+OrderFacade ..> Order
+
+note right of DishFactory : Factory Method
+note right of MealBuilder : Builder
+note right of MealAbstractFactory : Abstract Factory
+note right of FoodRefined : Bridge
+note right of PricingStrategy : Strategy
+note right of OrderVisitor : Visitor
+note right of OrderFacade : Facade
+
+@enduml
